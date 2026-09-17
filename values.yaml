@@ -176,7 +176,7 @@ qeCIPipelines:
       revision: pipeline_test
       flavors:
         single:
-          clusterGroup: ci
+      extraHelmOpts: "--set global.extraValueFiles[0]=/overrides/values-ci.yaml"
 
     # travelops:
     #   repo: https://github.com/validatedpatterns/travelops.git

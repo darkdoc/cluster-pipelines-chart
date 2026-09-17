@@ -99,6 +99,10 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     {{- end }}
     - name: target-clustergroup
       value: {{ include "qeCIPipelines.targetClusterGroup" . | quote }}
+    {{- if .app.extraHelmOpts }}
+    - name: extra-helm-opts
+      value: {{ .app.extraHelmOpts  | quote }}
+    {{- end }}
   workspaces:
     - name: pattern-repo
       workspace: shared-data

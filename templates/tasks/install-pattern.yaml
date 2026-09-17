@@ -16,6 +16,9 @@ spec:
     - name: target-clustergroup
       type: string
       default: hub
+    - name: extra-helm-opts
+      type: string
+      default: ""
   workspaces:
     - name: pattern-repo
     - name: kubeconfig
@@ -33,6 +36,8 @@ spec:
           value: $(workspaces.kubeconfig.path)/$(params.cluster-name)-kubeconfig
         - name: TARGET_CLUSTERGROUP
           value: $(params.target-clustergroup)
+        - name: EXTRA_HELM_OPTS
+          value: $(params.extra-helm-opts)
       script: |
         #!/usr/bin/env bash
         set -euo pipefail
