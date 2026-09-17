@@ -4,6 +4,7 @@ Checkout, metadata validation, and sizing (always first).
 {{- define "qeCIPipelines.tasks.setup" -}}
 - name: checkout-pattern-repo
   taskRef:
+    kind: Task
     name: clone-git-repo
   workspaces:
     - name: output-repo
@@ -17,6 +18,7 @@ Checkout, metadata validation, and sizing (always first).
   runAfter:
     - checkout-pattern-repo
   taskRef:
+    kind: Task
     name: validate-pattern-metadata
   params:
     - name: platform
@@ -82,6 +84,7 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     - provision-hosted-cluster
     {{- end }}
   taskRef:
+    kind: Task
     name: install-pattern
   params:
     {{- if eq .flavorName "single" }}
@@ -119,6 +122,7 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
   runAfter:
     - install-pattern
   taskRef:
+    kind: Task
     name: import-spoke-cluster
   params:
     - name: install-status
@@ -162,6 +166,7 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     - install-pattern
     {{- end }}
   taskRef:
+    kind: Task
     name: interop-test
   params:
     {{- if eq .flavorName "single" }}
@@ -206,6 +211,7 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
   when:
     - cel: "'$(tasks.install-pattern.results.outcome)' == 'failed' || '$(tasks.interop-test.results.outcome)' == 'failed'"
   taskRef:
+    kind: Task
     name: must-gather
   params:
     - name: cluster-name
@@ -230,6 +236,7 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
   when:
     - cel: "'$(tasks.install-pattern.results.outcome)' == 'failed' || '$(tasks.interop-test.results.outcome)' == 'failed'"
   taskRef:
+    kind: Task
     name: must-gather
   params:
     - name: cluster-name
@@ -303,6 +310,7 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
       values: ["success"]
 {{- end }}
   taskRef:
+    kind: Task
     name: upload-must-gather
   workspaces:
     - name: must-gather
@@ -325,16 +333,19 @@ Shared finally tasks (not flavor-specific cleanup).
       operator: in
       values: ["Failed"]
   taskRef:
+    kind: Task
     name: slack-notify-failure
   params:
 - name: pipeline-failure-check
   taskRef:
+    kind: Task
     name: pipeline-failure-check
   params:
     - name: aggregateTasksStatus
       value: "$(tasks.status)"
 - name: generate-ci-badge
   taskRef:
+    kind: Task
     name: generate-ci-badge
   params:
     - name: pattern-repo-url

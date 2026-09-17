@@ -55,7 +55,7 @@ spec:
     - name: force-skip-cleanup
       type: string
       description: Skip cluster cleanup, even if everything is green
-      default: false
+      default: 'false'
     - name: cluster-name-postfix
       type: string
       description: >

@@ -17,6 +17,7 @@ Multi cluster flavor: hub and spoke provision in parallel (pool claim or Hive de
     - validate-pattern-metadata
   timeout: {{ default "2h" .root.Values.qeCIPipelines.defaults.provisionTaskTimeout | quote }}
   taskRef:
+    kind: Task
     name: provision-cluster
   params:
 {{ include "qeCIPipelines.provision.cluster.hive.params" $hubParams | nindent 4 }}
@@ -38,6 +39,7 @@ Multi cluster flavor: hub and spoke provision in parallel (pool claim or Hive de
     - validate-pattern-metadata
   timeout: {{ default "2h" .root.Values.qeCIPipelines.defaults.provisionTaskTimeout | quote }}
   taskRef:
+    kind: Task
     name: provision-cluster
   params:
 {{ include "qeCIPipelines.provision.cluster.hive.params" $spokeParams | nindent 4 }}
@@ -66,6 +68,7 @@ Multi cluster flavor: hub and spoke provision in parallel (pool claim or Hive de
       operator: in
       values: ["false"]
   taskRef:
+    kind: Task
     name: delete-cluster
   params:
     - name: cluster-name
@@ -79,6 +82,7 @@ Multi cluster flavor: hub and spoke provision in parallel (pool claim or Hive de
       operator: in
       values: ["false"]
   taskRef:
+    kind: Task
     name: delete-cluster
   params:
     - name: cluster-name

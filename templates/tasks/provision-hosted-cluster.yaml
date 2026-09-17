@@ -56,10 +56,8 @@ spec:
       properties:
         replicas:
           type: string
-          default: "0"
         type:
           type: string
-          default: ""
 
   results:
     - name: cluster-name

@@ -141,7 +141,7 @@ spec:
           "openshiftVersion": "${OPENSHIFT_VERSION}",
           "debugInfo": "${DEBUG_INFO}",
           "patternName": "${PATTERN_SHORT_NAME}",
-          "variant": "${PATTERN_VARIANT}"
+          "variant": "${PATTERN_VARIANT}",
           "testId": "${PIPELINERUN_ID}",
           "testSource": "${TEST_SOURCE}",
           "date": "${DATE}",

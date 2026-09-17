@@ -12,6 +12,7 @@ Single cluster flavor: single cluster Hive deploy, after metadata validation.
     - validate-pattern-metadata
   timeout: {{ default "2h" .root.Values.qeCIPipelines.defaults.provisionTaskTimeout | quote }}
   taskRef:
+    kind: Task
     name: provision-cluster
   params:
 {{ include "qeCIPipelines.provision.cluster.hive.params" $params | nindent 4 }}
@@ -40,6 +41,7 @@ Single cluster flavor: single cluster Hive deploy, after metadata validation.
       operator: in
       values: ["false"]
   taskRef:
+    kind: Task
     name: delete-cluster
   params:
    - name: cluster-name

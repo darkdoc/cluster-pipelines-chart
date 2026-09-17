@@ -7,6 +7,7 @@ Hosted cluster flavor: HyperShift hosted cluster (after metadata validation).
     - validate-pattern-metadata
   timeout: {{ default "2h" .root.Values.qeCIPipelines.defaults.provisionTaskTimeout | quote }}
   taskRef:
+    kind: Task
     name: provision-hosted-cluster
   params:
     - name: cluster-base-name
@@ -50,6 +51,7 @@ Hosted cluster flavor: HyperShift hosted cluster (after metadata validation).
       operator: in
       values: ["Completed"]
   taskRef:
+    kind: Task
     name: destroy-hosted-cluster
   params:
     - name: cluster-name
