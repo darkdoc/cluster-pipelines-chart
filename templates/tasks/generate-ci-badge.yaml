@@ -27,9 +27,6 @@ spec:
     - name: pattern-name
       type: string
       default: ""
-    - name: interop-status
-      type: string
-      default: "skipped"
     - name: badge-aws-bucket
       type: string
       default: {{ .Values.qeCIPipelines.defaults.ciBucket }}
@@ -56,6 +53,9 @@ spec:
       secretName: {{ .Values.qeCIPipelines.defaults.platforms.aws.credentialName }}
   workspaces:
     - name: results
+    - name: kubeconfig
+    - name: test-results
+    - name: install-results
   steps:
     - name: generate-badge
       image: {{ .Values.qeCIPipelines.defaults.utilityContainerImg }}
@@ -82,27 +82,25 @@ spec:
         SCHEMA_VERSION=1
         TRIGGER_SOURCE="cron"
 
-        INTEROP_STATUS=$(params.interop-status)
+        if ! ls $(workspaces.kubeconfig.path)/*-kubeconfig &>/dev/null ; then
+            echo "kubeconfig not found for cluster, marking CI as infra failure"
+            COLOR="yellow"
+            MESSAGE="FAILURE"
+        else
+            COLOR=red
+            MESSAGE="FAILURE"
+            TEST_STATUS=$(cat "$(workspaces.test-results.path)"/status 2>/dev/null)
+            TEST_STATUS="${TEST_STATUS:-"failed"}"
 
-        case "${INTEROP_STATUS}" in
-          skipped)
-            COLOR="yellow"
-            MESSAGE="FAILURE"
-            ;;
-          failed)
-            COLOR="red"
-            MESSAGE="FAILURE"
-            ;;
-          success)
-            COLOR="green"
-            MESSAGE="SUCCESS"
-            DEBUG_INFO="N/A"
-            ;;
-          *)
-            COLOR="yellow"
-            MESSAGE="FAILURE"
-            ;;
-        esac
+            INSTALL_STATUS=$(cat "$(workspaces.install-results.path)"/status 2>/dev/null)
+            INSTALL_STATUS="${INSTALL_STATUS:-"failed"}"
+
+            if [[ "$TEST_STATUS" == "success" && "$INSTALL_STATUS" == "success" ]]; then
+              COLOR="green"
+              MESSAGE="SUCCESS"
+              DEBUG_INFO="N/A"
+            fi
+        fi
 
 
         INFRA_PROVIDER="$(params.platform)"

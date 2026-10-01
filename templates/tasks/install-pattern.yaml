@@ -22,12 +22,11 @@ spec:
   workspaces:
     - name: pattern-repo
     - name: kubeconfig
+    - name: install-results
 {{- range $i := until $maxSecrets }}
     - name: values-secret-{{ $i }}
       optional: true
 {{- end }}
-  results:
-    - name: outcome
   steps:
     - name: install-pattern
       image: {{ .Values.qeCIPipelines.defaults.utilityContainerImg }}
@@ -43,7 +42,7 @@ spec:
         set -euo pipefail
         # This is some workaround for Tekton injecting some KUBERNETES_* env vars
         unset KUBERNETES_SERVICE_HOST
-        trap 'echo -n failed > $(results.outcome.path)' ERR
+        trap 'echo -n failed > $(workspaces.install-results.path)/status' ERR
 
         # Copy secrets to home folder (they need to be referenced there in values-secrets.yaml)
         HOME_DIR="${HOME:-/tekton/home}"
@@ -69,4 +68,4 @@ spec:
         ./pattern.sh make install
 
         # If we reach here, everything succeeded
-        echo -n success > $(results.outcome.path)
+        echo -n success > $(workspaces.install-results.path)/status
