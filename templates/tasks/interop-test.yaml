@@ -26,6 +26,7 @@ spec:
   workspaces:
     - name: pattern-repo
     - name: kubeconfig
+    - name: test-results
   results:
     - name: outcome
   steps:
@@ -44,18 +45,10 @@ spec:
         #!/usr/bin/env bash
         set -euo pipefail
 
-        INSTALL_STATUS=$(params.install-status)
-
-        if [ "$INSTALL_STATUS" != "success" ]; then
-          echo "Skipping interop test due to failed install/import"
-          echo -n "skipped" > $(results.outcome.path)
-          exit 0
-        fi
-
-        trap 'echo -n "failed" > $(results.outcome.path)' ERR
+        trap 'echo -n "failed" > $(workspaces.test-results.path)/status' ERR
         cd $(workspaces.pattern-repo.path)
 
         ./pattern.sh make run-ci-tests
 
         # If we reach here, everything succeeded
-        echo -n success > "$(results.outcome.path)"
+        echo -n success > $(workspaces.test-results.path)/status

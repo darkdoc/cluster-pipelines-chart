@@ -4,6 +4,7 @@ Checkout, metadata validation, and sizing (always first).
 {{- define "qeCIPipelines.tasks.setup" -}}
 - name: checkout-pattern-repo
   taskRef:
+    kind: Task
     name: clone-git-repo
   workspaces:
     - name: output-repo
@@ -17,6 +18,7 @@ Checkout, metadata validation, and sizing (always first).
   runAfter:
     - checkout-pattern-repo
   taskRef:
+    kind: Task
     name: validate-pattern-metadata
   params:
     - name: platform
@@ -82,6 +84,7 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     - provision-hosted-cluster
     {{- end }}
   taskRef:
+    kind: Task
     name: install-pattern
   params:
     {{- if eq .flavorName "single" }}
@@ -96,6 +99,10 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     {{- end }}
     - name: target-clustergroup
       value: {{ include "qeCIPipelines.targetClusterGroup" . | quote }}
+    {{- if .app.extraHelmOpts }}
+    - name: extra-helm-opts
+      value: {{ .app.extraHelmOpts  | quote }}
+    {{- end }}
   workspaces:
     - name: pattern-repo
       workspace: shared-data
@@ -103,6 +110,9 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     - name: kubeconfig
       workspace: shared-data
       subPath: kubeconfig
+    - name: install-results
+      workspace: shared-data
+      subPath: install-results
     {{- if eq .flavorName "multi-dr" }}
     - name: values-secret-0
       workspace: shared-data
@@ -119,10 +129,9 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
   runAfter:
     - install-pattern
   taskRef:
+    kind: Task
     name: import-spoke-cluster
   params:
-    - name: install-status
-      value: $(tasks.install-pattern.results.outcome)
     - name: hub-cluster-name
       value: $(tasks.provision-hub.results.cluster-name)
     - name: spoke-cluster-name
@@ -134,6 +143,9 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     - name: kubeconfig
       workspace: shared-data
       subPath: kubeconfig
+    - name: install-results
+      workspace: shared-data
+      subPath: install-results
 {{- else if eq .flavorName "multi-dr" }}
 - name: wait-hub-dr
   onError: continue
@@ -142,14 +154,15 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
   taskRef:
     name: wait-hub-dr
   params:
-    - name: install-status
-      value: $(tasks.install-pattern.results.outcome)
     - name: hub-cluster-name
       value: $(tasks.provision-hub.results.cluster-name)
   workspaces:
     - name: kubeconfig
       workspace: shared-data
       subPath: kubeconfig
+    - name: install-results
+      workspace: shared-data
+      subPath: install-results
 {{- end }}
 - name: interop-test
   onError: continue
@@ -162,6 +175,7 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     - install-pattern
     {{- end }}
   taskRef:
+    kind: Task
     name: interop-test
   params:
     {{- if eq .flavorName "single" }}
@@ -185,15 +199,10 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     {{- end }}
     - name: target-clustergroup
       value: {{ include "qeCIPipelines.targetClusterGroup" . | quote }}
-    - name: install-status
-    {{- if eq .flavorName "multi" }}
-      value: $(tasks.import-spoke.results.import-status)
-    {{- else if eq .flavorName "multi-dr" }}
-      value: $(tasks.wait-hub-dr.results.outcome)
-    {{- else }}
-      value: $(tasks.install-pattern.results.outcome)
-    {{- end }}
   workspaces:
+    - name: test-results
+      workspace: shared-data
+      subPath: test-results
     - name: pattern-repo
       workspace: shared-data
       subPath: pattern-repo
@@ -203,9 +212,8 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
 - name: must-gather-hub
   runAfter:
     - interop-test
-  when:
-    - cel: "'$(tasks.install-pattern.results.outcome)' == 'failed' || '$(tasks.interop-test.results.outcome)' == 'failed'"
   taskRef:
+    kind: Task
     name: must-gather
   params:
     - name: cluster-name
@@ -223,13 +231,18 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     - name: must-gather
       workspace: shared-data
       subPath: must-gather
+    - name: test-results
+      workspace: shared-data
+      subPath: test-results
+    - name: install-results
+      workspace: shared-data
+      subPath: install-results
 {{- if eq .flavorName "multi" }}
 - name: must-gather-spoke
   runAfter:
     - interop-test
-  when:
-    - cel: "'$(tasks.install-pattern.results.outcome)' == 'failed' || '$(tasks.interop-test.results.outcome)' == 'failed'"
   taskRef:
+    kind: Task
     name: must-gather
   params:
     - name: cluster-name
@@ -241,12 +254,16 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     - name: must-gather
       workspace: shared-data
       subPath: must-gather
+    - name: test-results
+      workspace: shared-data
+      subPath: test-results
+    - name: install-results
+      workspace: shared-data
+      subPath: install-results
 {{- else if eq .flavorName "multi-dr" }}
 - name: must-gather-spoke-primary
   runAfter:
     - interop-test
-  when:
-    - cel: "'$(tasks.install-pattern.results.outcome)' == 'failed' || '$(tasks.interop-test.results.outcome)' == 'failed'"
   taskRef:
     name: must-gather
   params:
@@ -259,11 +276,15 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     - name: must-gather
       workspace: shared-data
       subPath: must-gather
+    - name: test-results
+      workspace: shared-data
+      subPath: test-results
+    - name: install-results
+      workspace: shared-data
+      subPath: install-results
 - name: must-gather-spoke-secondary
   runAfter:
     - interop-test
-  when:
-    - cel: "'$(tasks.install-pattern.results.outcome)' == 'failed' || '$(tasks.interop-test.results.outcome)' == 'failed'"
   taskRef:
     name: must-gather
   params:
@@ -276,6 +297,12 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
     - name: must-gather
       workspace: shared-data
       subPath: must-gather
+    - name: test-results
+      workspace: shared-data
+      subPath: test-results
+    - name: install-results
+      workspace: shared-data
+      subPath: install-results
 {{- end }}
 - name: upload-must-gather
   runAfter:
@@ -303,6 +330,7 @@ Install, optional spoke import, tests, and diagnostics (after provisioning).
       values: ["success"]
 {{- end }}
   taskRef:
+    kind: Task
     name: upload-must-gather
   workspaces:
     - name: must-gather
@@ -325,16 +353,19 @@ Shared finally tasks (not flavor-specific cleanup).
       operator: in
       values: ["Failed"]
   taskRef:
+    kind: Task
     name: slack-notify-failure
   params:
 - name: pipeline-failure-check
   taskRef:
+    kind: Task
     name: pipeline-failure-check
   params:
     - name: aggregateTasksStatus
       value: "$(tasks.status)"
 - name: generate-ci-badge
   taskRef:
+    kind: Task
     name: generate-ci-badge
   params:
     - name: pattern-repo-url
@@ -355,8 +386,6 @@ Shared finally tasks (not flavor-specific cleanup).
     {{- end }}
     - name: pattern-name
       value: {{ .patternName | quote }}
-    - name: interop-status
-      value: $(tasks.interop-test.results.outcome)
     - name: must-gather-status
       value: $(tasks.upload-must-gather.status)
     - name: pipelinerun-ns
@@ -372,4 +401,13 @@ Shared finally tasks (not flavor-specific cleanup).
   workspaces:
     - name: results
       workspace: shared-data
+    - name: kubeconfig
+      workspace: shared-data
+      subPath: kubeconfig
+    - name: test-results
+      workspace: shared-data
+      subPath: test-results
+    - name: install-results
+      workspace: shared-data
+      subPath: install-results
 {{- end }}
