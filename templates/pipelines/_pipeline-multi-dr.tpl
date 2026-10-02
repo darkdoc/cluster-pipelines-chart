@@ -28,6 +28,7 @@ Each cluster receives non-overlapping CIDRs to support Submariner and ODF multic
   retries: 3
   timeout: {{ default "2h" .root.Values.qeCIPipelines.defaults.provisionTaskTimeout | quote }}
   taskRef:
+    kind: Task
     name: provision-cluster
   params:
 {{ include "qeCIPipelines.provision.cluster.hive.params" $hubParams | nindent 4 }}
@@ -58,6 +59,7 @@ Each cluster receives non-overlapping CIDRs to support Submariner and ODF multic
   retries: 3
   timeout: {{ default "2h" .root.Values.qeCIPipelines.defaults.provisionTaskTimeout | quote }}
   taskRef:
+    kind: Task
     name: provision-cluster
   params:
 {{ include "qeCIPipelines.provision.cluster.hive.params" $spokePrimaryParams | nindent 4 }}
@@ -92,6 +94,7 @@ Each cluster receives non-overlapping CIDRs to support Submariner and ODF multic
   retries: 3
   timeout: {{ default "2h" .root.Values.qeCIPipelines.defaults.provisionTaskTimeout | quote }}
   taskRef:
+    kind: Task
     name: provision-cluster
   params:
 {{ include "qeCIPipelines.provision.cluster.hive.params" $spokeSecondaryParams | nindent 4 }}
@@ -132,6 +135,7 @@ Each cluster receives non-overlapping CIDRs to support Submariner and ODF multic
       operator: in
       values: ["false"]
   taskRef:
+    kind: Task
     name: delete-cluster
   params:
     - name: cluster-name
@@ -145,6 +149,7 @@ Each cluster receives non-overlapping CIDRs to support Submariner and ODF multic
       operator: in
       values: ["false"]
   taskRef:
+    kind: Task
     name: delete-cluster
   params:
     - name: cluster-name
@@ -158,6 +163,7 @@ Each cluster receives non-overlapping CIDRs to support Submariner and ODF multic
       operator: in
       values: ["false"]
   taskRef:
+    kind: Task
     name: delete-cluster
   params:
     - name: cluster-name
