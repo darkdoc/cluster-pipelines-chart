@@ -158,18 +158,6 @@ qeCIPipelines:
       secrets:
         - ramendr-secret-values-file
 
-    # industrial-edge:
-    #   repo: https://github.com/validatedpatterns/industrial-edge.git
-    #   flavors:
-    #     - multi
-    #   secrets:
-    #     - industrial-edge-secret-values-file
-
-    # medical-diag:
-    #   repo: https://github.com/validatedpatterns/medical-diagnosis.git
-    #   flavors:
-    #     - single
-
     # These are the tested tier
     layered-zero:
       repo: https://github.com/darkdoc/layered-zero-trust.git
