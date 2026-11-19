@@ -69,6 +69,7 @@ qeCIPipelines:
       - "4.20"
       - "4.21"
       - "4.22"
+      - "5.0"
     flavors: # These are the pipeline "types"
       # List form: [single, multi] — clusterGroup defaults to hub;
       # override with map form, e.g. single: { clusterGroup: standalone }
@@ -200,6 +201,7 @@ qeCIPipelines:
       - "4.20"
       - "4.21"
       - "4.22"
+      - "5.0"
   scheduleDefaults:
     suspend: false
     concurrencyPolicy: Forbid
