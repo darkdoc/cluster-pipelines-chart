@@ -103,10 +103,12 @@ spec:
         - name: cluster-exists
           type: string
           description: Whether the HostedCluster already exists (true/false)
+      env:
+        - name: CLUSTER_NAME
+          value: $(steps.generate-cluster-name.results.cluster-name)
       script: |
         #!/usr/bin/env bash
         echo "Check exising cluster..."
-        CLUSTER_NAME="$(cat "$(results.cluster-name.path)")"
         CLUSTER_NAMESPACE=$(params.namespace)
 
         if oc get hostedcluster "${CLUSTER_NAME}" -n ${CLUSTER_NAMESPACE} &>/dev/null; then
@@ -151,11 +153,12 @@ spec:
       env:
         - name: RELEASE_IMAGE
           value: $(steps.get-openshift-version.results.release-image)
+        - name: CLUSTER_NAME
+          value: $(steps.generate-cluster-name.results.cluster-name)
       script: |
         #!/bin/bash
         set -euo pipefail
 
-        CLUSTER_NAME="$(cat "$(results.cluster-name.path)")"
         CLUSTER_NAMESPACE=$(params.namespace)
 
         BASE_DOMAIN={{ .Values.qeCIPipelines.defaults.platforms.aws.baseDomain | quote }}
@@ -203,12 +206,14 @@ spec:
 
     - name: wait-clusterdeployment-ready
       image: {{ .Values.toolsImage }}
+      env:
+        - name: CLUSTER_NAME
+          value: $(steps.generate-cluster-name.results.cluster-name)
       script: |
         #!/bin/bash
         set -euo pipefail
 
 
-        CLUSTER_NAME=$(cat $(results.cluster-name.path))
         CLUSTER_NAMESPACE=$(params.namespace)
 
         TIMEOUT=$(params.wait-timeout)
@@ -228,12 +233,13 @@ spec:
       env:
         - name: EXCACT_OCP_VERSION
           value: $(steps.get-openshift-version.results.exact-ocp-version)
+        - name: CLUSTER_NAME
+          value: $(steps.generate-cluster-name.results.cluster-name)
       script: |
         #!/bin/bash
         set -euo pipefail
 
         # Extract admin kubeconfig
-        CLUSTER_NAME=$(cat $(results.cluster-name.path))
         CLUSTER_NAMESPACE=$(params.namespace)
 
         KUBECONFIG_SECRET=$(oc get hostedcluster "${CLUSTER_NAME}" \

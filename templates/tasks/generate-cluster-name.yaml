@@ -61,6 +61,8 @@ spec:
       value: $(params.cluster-role)
     - name: FLAVOR
       value: $(params.flavor)
+    - name: RESULTS_CLUSTER_NAME
+      value: $(step.results.cluster-name.path)
   script: |
       #!/usr/bin/env bash
 
@@ -95,4 +97,4 @@ spec:
         fi
 
         CLUSTER_NAME="${CLUSTER_BASENAME}-${PLATFORM}-${VERSION_STRING}-${CLUSTER_ROLE}-${FLAVOR}-${POSTFIX}"
-        echo -n "${CLUSTER_NAME}" > "$(results.cluster-name.path)"
+        echo -n "${CLUSTER_NAME}" > ${RESULTS_CLUSTER_NAME}
