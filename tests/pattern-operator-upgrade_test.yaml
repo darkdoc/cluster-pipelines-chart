@@ -9,5 +9,5 @@ tests:
       of: Pipeline
     asserts:
       - hasDocuments:
-          count: 3 # (hosted, aws, 3 version)
+          count: 4 # (hosted, aws, 3 version)
           filterAware: true
