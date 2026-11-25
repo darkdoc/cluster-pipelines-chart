@@ -75,7 +75,6 @@ spec:
         value: $(context.pipelineRun.uid)
       taskSpec:
         metadata: {}
-        spec: null
         params:
         - name: cluster-name-postfix
           type: string
@@ -87,7 +86,9 @@ spec:
           type: string
         results:
           - name: postfix
-        steps:
+            type: string
+        spec:
+          steps:
           - name: get-uniq-postfix
             computeResources: {}
             image: registry.access.redhat.com/ubi10-minimal:latest
@@ -206,7 +207,6 @@ spec:
           subPath: patterns-operator
       taskSpec:
         metadata: {}
-        spec: null
         params:
           - name: target-version
             type: string
@@ -215,7 +215,8 @@ spec:
         results:
         workspaces:
           - name: source
-        steps:
+        spec:
+          steps:
           - name: generate-bundle
             computeResources: {}
             image: quay.io/operator-framework/operator-sdk:v1.42
@@ -273,7 +274,6 @@ spec:
           subPath: patterns-operator
       taskSpec:
         metadata: {}
-        spec: null
         params:
           - name: target-version
             type: string
@@ -281,9 +281,11 @@ spec:
             type: string
         results:
           - name: current-version
+            type: string
         workspaces:
           - name: source
-        steps:
+        spec:
+          steps:
           - name: get-current-operator-version
             computeResources: {}
             image: {{ $.Values.qeCIPipelines.defaults.utilityContainerImg }}
@@ -392,7 +394,6 @@ spec:
         subPath: kubeconfig
       taskSpec:
         metadata: {}
-        spec: null
         params:
           - name: upload-registry
             type: string
@@ -401,7 +402,8 @@ spec:
         results:
         workspaces:
           - name: kubeconfig
-        steps:
+        spec:
+          steps:
           - name: apply-catalog
             computeResources: {}
             image: {{ $.Values.qeCIPipelines.defaults.utilityContainerImg }}
@@ -448,7 +450,6 @@ spec:
         subPath: install-results
       taskSpec:
         metadata: {}
-        spec: null
         params:
           - name: upload-registry
             type: string
@@ -461,7 +462,8 @@ spec:
           - name: kubeconfig
           - name: test-results
           - name: install-results
-        steps:
+        spec:
+          steps:
           - name: apply-catalog
             computeResources: {}
             image: {{ $.Values.qeCIPipelines.defaults.utilityContainerImg }}
