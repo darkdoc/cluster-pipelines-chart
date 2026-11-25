@@ -36,7 +36,7 @@ spec:
     - name: pattern-repo-revision
       type: string
       description: Git revision (branch, tag, or SHA)
-      default:  {{ $.Values.qeCIPipelines.patternsOperator.patternRepoRevision | default "main" }} 
+      default:  {{ $.Values.qeCIPipelines.patternsOperator.patternRepoRevision | default "main" }}
     - name: patterns-operator-repo-url
       type: string
       description: Git URL of the operators repo to use (override for forks)
@@ -44,7 +44,7 @@ spec:
     - name: patterns-operator-repo-revision
       type: string
       description: Git revision (branch, tag, or SHA)
-      default:  {{ $.Values.qeCIPipelines.patternsOperator.operatorRepoRevision | default "main" }} 
+      default:  {{ $.Values.qeCIPipelines.patternsOperator.operatorRepoRevision | default "main" }}
     - name: force-skip-cleanup
       type: string
       description: Skip cluster cleanup, even if everything is green
@@ -74,15 +74,22 @@ spec:
       - name: pipelinerun-uid
         value: $(context.pipelineRun.uid)
       taskSpec:
+        metadata: {}
+        spec: null
         params:
         - name: cluster-name-postfix
+          type: string
         - name: pipelinerun-name
+          type: string
         - name: pipeline-name
+          type: string
         - name: pipelinerun-uid
+          type: string
         results:
           - name: postfix
         steps:
           - name: get-uniq-postfix
+            computeResources: {}
             image: registry.access.redhat.com/ubi10-minimal:latest
             script: |
               #!/usr/bin/env bash
@@ -204,14 +211,19 @@ spec:
           workspace: shared-data
           subdir: patterns-operator
       taskSpec:
+        metadata: {}
+        spec: null
         params:
           - name: target-version
+            type: string
           - name: upload-registry
+            type: string
         results:
         workspaces:
           - name: source
         steps:
           - name: generate-bundle
+            computeResources: {}
             image: quay.io/operator-framework/operator-sdk:v1.42
             script: |
               #!/usr/bin/env bash
@@ -266,34 +278,40 @@ spec:
       workspaces:
         - name: source
           workspace: shared-data
-          subdir: patterns-operator
+          subPath: patterns-operator
       taskSpec:
+        metadata: {}
+        spec: null
         params:
           - name: target-version
+            type: string
           - name: upload-registry
+            type: string
         results:
           - name: current-version
         workspaces:
           - name: source
         steps:
           - name: get-current-operator-version
+            computeResources: {}
             image: {{ $.Values.qeCIPipelines.defaults.utilityContainerImg }}
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
 
-              cd "$(workspaces.source.path)/patterns-operator"
+              cd "$(workspaces.source.path)"
               git fetch --tags
               CURRENT_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
               echo ${CURRENT_TAG} > $(results.current-version.path)
 
           - name: generate-catalog
+            computeResources: {}
             image: quay.io/operator-framework/operator-sdk:v1.42
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
 
-              cd "$(workspaces.source.path)/patterns-operator"
+              cd "$(workspaces.source.path)"
 
               CURRENT_TAG=$(cat $(results.current-version.path))
 
@@ -381,14 +399,19 @@ spec:
         workspace: shared-data
         subPath: kubeconfig
       taskSpec:
+        metadata: {}
+        spec: null
         params:
           - name: upload-registry
+            type: string
           - name: cluster-name
+            type: string
         results:
         workspaces:
           - name: kubeconfig
         steps:
           - name: apply-catalog
+            computeResources: {}
             image: {{ $.Values.qeCIPipelines.defaults.utilityContainerImg }}
             env:
               - name: KUBECONFIG
@@ -427,15 +450,22 @@ spec:
         workspace: shared-data
         subPath: test-results
       taskSpec:
+        metadata: {}
+        spec: null
         params:
           - name: upload-registry
+            type: string
           - name: cluster-name
+            type: string
+          - name: target-version
+            type: string
         results:
         workspaces:
           - name: kubeconfig
           - name: test-results
         steps:
           - name: apply-catalog
+            computeResources: {}
             image: {{ $.Values.qeCIPipelines.defaults.utilityContainerImg }}
             env:
               - name: KUBECONFIG
