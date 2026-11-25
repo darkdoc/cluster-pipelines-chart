@@ -384,18 +384,8 @@ Shared finally tasks (not flavor-specific cleanup).
       value: {{ .platformName | quote }}
     - name: ocp-version
       value: {{ .ocpVersion | quote }}
-    - name: exact-ocp-version
-    {{- if eq .flavorName "single" }}
-      value: $(tasks.provision-cluster.results.exact-ocp-version)
-    {{- else if or (eq .flavorName "multi") (eq .flavorName "multi-dr") }}
-      value: $(tasks.provision-hub.results.exact-ocp-version)
-    {{- else }}
-      value: $(tasks.provision-hosted-cluster.results.exact-ocp-version)
-    {{- end }}
     - name: pattern-name
       value: {{ .patternName | quote }}
-    - name: must-gather-status
-      value: $(tasks.upload-must-gather.status)
     - name: pipelinerun-ns
       value: $(context.pipelineRun.namespace)
     - name: pipelinerun-name

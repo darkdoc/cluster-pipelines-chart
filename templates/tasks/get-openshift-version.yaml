@@ -24,9 +24,6 @@ spec:
       value: $(step.results.release-image.path)
     - name: RESULTS_EXACT_OCP_VERSION_PATH
       value: $(step.results.exact-ocp-version.path)
-
-
-
   script: |
       #!/usr/bin/env bash
 
