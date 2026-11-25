@@ -197,6 +197,7 @@ qeCIPipelines:
     patternRepo: https://github.com/validatedpatterns/multicloud-gitops.git
     patternRepoRevision: main
     imageExpiry: 24h
+    upgradeTimeout: 10m
     ocp_versions:
       - "4.20"
       - "4.21"

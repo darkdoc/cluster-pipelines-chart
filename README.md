@@ -117,6 +117,7 @@ This chart is used to serve as the template for Validated Patterns Charts
 | qeCIPipelines.patternsOperator.operatorRepoRevision | string | `"main"` |  |
 | qeCIPipelines.patternsOperator.patternRepo | string | `"https://github.com/validatedpatterns/multicloud-gitops.git"` |  |
 | qeCIPipelines.patternsOperator.patternRepoRevision | string | `"main"` |  |
+| qeCIPipelines.patternsOperator.upgradeTimeout | string | `"10m"` |  |
 | qeCIPipelines.scheduleDefaults.concurrencyPolicy | string | `"Forbid"` |  |
 | qeCIPipelines.scheduleDefaults.failedJobsHistoryLimit | int | `3` |  |
 | qeCIPipelines.scheduleDefaults.finallyTimeout | string | `"30m"` |  |
