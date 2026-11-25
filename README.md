@@ -47,6 +47,7 @@ This chart is used to serve as the template for Validated Patterns Charts
 | qeCIPipelines.defaults.ocp_versions[0] | string | `"4.20"` |  |
 | qeCIPipelines.defaults.ocp_versions[1] | string | `"4.21"` |  |
 | qeCIPipelines.defaults.ocp_versions[2] | string | `"4.22"` |  |
+| qeCIPipelines.defaults.ocp_versions[3] | string | `"5.0"` |  |
 | qeCIPipelines.defaults.platforms.aws.baseDomain | string | `"aws.validatedpatterns.io"` |  |
 | qeCIPipelines.defaults.platforms.aws.computeNodeIAMRole | string | `"vp-ocp-Worker-Role"` |  |
 | qeCIPipelines.defaults.platforms.aws.controlPlaneIAMRole | string | `"vp-ocp-ControlPlane-Role"` |  |
@@ -111,6 +112,7 @@ This chart is used to serve as the template for Validated Patterns Charts
 | qeCIPipelines.patternsOperator.ocp_versions[0] | string | `"4.20"` |  |
 | qeCIPipelines.patternsOperator.ocp_versions[1] | string | `"4.21"` |  |
 | qeCIPipelines.patternsOperator.ocp_versions[2] | string | `"4.22"` |  |
+| qeCIPipelines.patternsOperator.ocp_versions[3] | string | `"5.0"` |  |
 | qeCIPipelines.patternsOperator.operatorRepo | string | `"https://github.com/validatedpatterns/patterns-operator"` |  |
 | qeCIPipelines.patternsOperator.operatorRepoRevision | string | `"main"` |  |
 | qeCIPipelines.patternsOperator.patternRepo | string | `"https://github.com/validatedpatterns/multicloud-gitops.git"` |  |

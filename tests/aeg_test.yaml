@@ -13,5 +13,5 @@ tests:
       of: Pipeline
     asserts:
       - hasDocuments:
-          count: 3 # (platform * versions * flavors)
+          count: 4 # (platform * versions * flavors)
           filterAware: true
