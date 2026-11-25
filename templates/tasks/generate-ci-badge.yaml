@@ -20,10 +20,6 @@ spec:
     - name: ocp-version
       type: string
       default: ""
-    - name: exact-ocp-version
-      description: The the exact, z stream version for a major.minor version
-      type: string
-      default: "N/A"
     - name: pattern-name
       type: string
       default: ""
@@ -33,9 +29,6 @@ spec:
     - name: must-gather-bucket
       type: string
       default: {{ .Values.qeCIPipelines.defaults.mustGatherBucket }}
-    - name: must-gather-status
-      type: string
-      default: "Failed"
     - name: pipelinerun-ns
       type: string
     - name: pipelinerun-name
@@ -73,25 +66,21 @@ spec:
 
         AWS_BUCKET=$(params.must-gather-bucket)
 
-        if [ "$(params.must-gather-status)" = "Succeeded" ]; then
-          DEBUG_INFO="s3://${AWS_BUCKET}/${PIPELINE_NAME}_${PIPELINERUN_ID}.gz"
-        else
-          DEBUG_INFO="Must gather was not running due to infra failure"
-        fi
-
         SCHEMA_VERSION=1
         TRIGGER_SOURCE="cron"
 
-        INSTALL_STATUS=$(cat "$(workspaces.install-results.path)"/status 2>/dev/null)
+        INSTALL_STATUS=$(cat "$(workspaces.install-results.path)"/status 2>/dev/null || true)
         if [ -z "$INSTALL_STATUS" ] ; then
             echo "Install status not reported, marking CI as infra failure"
             COLOR="yellow"
             MESSAGE="FAILURE"
+            DEBUG_INFO="Must gather was not running due to infra failure"
         else
             COLOR=red
             MESSAGE="FAILURE"
-            TEST_STATUS=$(cat "$(workspaces.test-results.path)"/status 2>/dev/null)
+            TEST_STATUS=$(cat "$(workspaces.test-results.path)"/status 2>/dev/null || true)
             TEST_STATUS="${TEST_STATUS:-"failed"}"
+            DEBUG_INFO="s3://${AWS_BUCKET}/${PIPELINE_NAME}_${PIPELINERUN_ID}.gz"
             if [[ "$TEST_STATUS" == "success" && "$INSTALL_STATUS" == "success" ]]; then
               COLOR="green"
               MESSAGE="SUCCESS"
@@ -114,8 +103,8 @@ spec:
 
         OCP_VERSION="$(params.ocp-version)"
 
-
-        OPENSHIFT_VERSION="$(params.exact-ocp-version)"
+        OPENSHIFT_VERSION=$(cat "$(workspaces.kubeconfig.path)/hub-version" 2>/dev/null || true)
+        OPENSHIFT_VERSION="${OPENSHIFT_VERSION:-$(params.ocp-version)}"
         OUTPUT_FILENAME=${PIPELINE_NAME}-stable-badge.json
         OUTPUT_FILE="$(workspaces.results.path)/${OUTPUT_FILENAME}"
 

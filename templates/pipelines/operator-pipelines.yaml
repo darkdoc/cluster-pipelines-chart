@@ -36,7 +36,7 @@ spec:
     - name: pattern-repo-revision
       type: string
       description: Git revision (branch, tag, or SHA)
-      default:  {{ $.Values.qeCIPipelines.patternsOperator.patternRepoRevision | default "main" }} 
+      default:  {{ $.Values.qeCIPipelines.patternsOperator.patternRepoRevision | default "main" }}
     - name: patterns-operator-repo-url
       type: string
       description: Git URL of the operators repo to use (override for forks)
@@ -44,7 +44,7 @@ spec:
     - name: patterns-operator-repo-revision
       type: string
       description: Git revision (branch, tag, or SHA)
-      default:  {{ $.Values.qeCIPipelines.patternsOperator.operatorRepoRevision | default "main" }} 
+      default:  {{ $.Values.qeCIPipelines.patternsOperator.operatorRepoRevision | default "main" }}
     - name: force-skip-cleanup
       type: string
       description: Skip cluster cleanup, even if everything is green
@@ -74,15 +74,22 @@ spec:
       - name: pipelinerun-uid
         value: $(context.pipelineRun.uid)
       taskSpec:
+        metadata: {}
+        spec: null
         params:
         - name: cluster-name-postfix
+          type: string
         - name: pipelinerun-name
+          type: string
         - name: pipeline-name
+          type: string
         - name: pipelinerun-uid
+          type: string
         results:
           - name: postfix
         steps:
           - name: get-uniq-postfix
+            computeResources: {}
             image: registry.access.redhat.com/ubi10-minimal:latest
             script: |
               #!/usr/bin/env bash
@@ -154,16 +161,12 @@ spec:
           value: openshift-pipelines
         - name: IMAGE
           value:  {{ $.Values.qeCIPipelines.patternsOperator.baseUploadRegistry }}/patterns-operator:9.9.9-$(tasks.get-uniq-postfix.results.postfix)
-        - name: DOCKERFILE
-          value: "./patterns-operator/Dockerfile"
-        - name: CONTEXT
-          value: "./patterns-operator/"
         - name: BUILD_EXTRA_ARGS
           value: "--label quay.expires-after={{ $.Values.qeCIPipelines.patternsOperator.imageExpiry }}"
       workspaces:
         - name: source
           workspace: shared-data
-          subdir: patterns-operator
+          subPath: patterns-operator
 
     - name: build-console-plugin
       runAfter:
@@ -181,15 +184,13 @@ spec:
         - name: IMAGE
           value: {{ $.Values.qeCIPipelines.patternsOperator.baseUploadRegistry }}/patterns-operator-console:9.9.9-$(tasks.get-uniq-postfix.results.postfix)
         - name: DOCKERFILE
-          value: "./patterns-operator/console-plugin.Dockerfile"
-        - name: CONTEXT
-          value: "./patterns-operator/"
+          value: "./console-plugin.Dockerfile"
         - name: BUILD_EXTRA_ARGS
           value: "--label quay.expires-after={{ $.Values.qeCIPipelines.patternsOperator.imageExpiry }}"
       workspaces:
         - name: source
           workspace: shared-data
-          subdir: patterns-operator
+          subPath: patterns-operator
 
     - name: generate-bundle
       runAfter:
@@ -202,22 +203,27 @@ spec:
       workspaces:
         - name: source
           workspace: shared-data
-          subdir: patterns-operator
+          subPath: patterns-operator
       taskSpec:
+        metadata: {}
+        spec: null
         params:
           - name: target-version
+            type: string
           - name: upload-registry
+            type: string
         results:
         workspaces:
           - name: source
         steps:
           - name: generate-bundle
+            computeResources: {}
             image: quay.io/operator-framework/operator-sdk:v1.42
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
 
-              cd "$(workspaces.source.path)/patterns-operator"
+              cd "$(workspaces.source.path)"
               make VERSION=$(params.target-version) UPLOADREGISTRY=$(params.upload-registry) \
               CHANNELS=fast bundle generate
 
@@ -243,15 +249,13 @@ spec:
         - name: IMAGE
           value:  {{ $.Values.qeCIPipelines.patternsOperator.baseUploadRegistry }}/patterns-operator-bundle:9.9.9-$(tasks.get-uniq-postfix.results.postfix)
         - name: DOCKERFILE
-          value: "./patterns-operator/bundle.Dockerfile"
-        - name: CONTEXT
-          value: "./patterns-operator/"
+          value: "./bundle.Dockerfile"
         - name: BUILD_EXTRA_ARGS
           value: "--label quay.expires-after={{ $.Values.qeCIPipelines.patternsOperator.imageExpiry }}"
       workspaces:
         - name: source
           workspace: shared-data
-          subdir: patterns-operator
+          subPath: patterns-operator
 
     - name: generate-catalog
       runAfter:
@@ -266,34 +270,40 @@ spec:
       workspaces:
         - name: source
           workspace: shared-data
-          subdir: patterns-operator
+          subPath: patterns-operator
       taskSpec:
+        metadata: {}
+        spec: null
         params:
           - name: target-version
+            type: string
           - name: upload-registry
+            type: string
         results:
           - name: current-version
         workspaces:
           - name: source
         steps:
           - name: get-current-operator-version
+            computeResources: {}
             image: {{ $.Values.qeCIPipelines.defaults.utilityContainerImg }}
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
 
-              cd "$(workspaces.source.path)/patterns-operator"
+              cd "$(workspaces.source.path)"
               git fetch --tags
               CURRENT_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
               echo ${CURRENT_TAG} > $(results.current-version.path)
 
           - name: generate-catalog
+            computeResources: {}
             image: quay.io/operator-framework/operator-sdk:v1.42
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
 
-              cd "$(workspaces.source.path)/patterns-operator"
+              cd "$(workspaces.source.path)"
 
               CURRENT_TAG=$(cat $(results.current-version.path))
 
@@ -358,15 +368,15 @@ spec:
         - name: IMAGE
           value: {{ $.Values.qeCIPipelines.patternsOperator.baseUploadRegistry }}/patterns-operator-catalog:latest
         - name: DOCKERFILE
-          value: "./patterns-operator/catalog/Dockerfile"
+          value: "./catalog/Dockerfile"
         - name: CONTEXT
-          value: "./patterns-operator/catalog/"
+          value: "./catalog/"
         - name: BUILD_EXTRA_ARGS
           value: "--label quay.expires-after={{ $.Values.qeCIPipelines.patternsOperator.imageExpiry }}"
       workspaces:
         - name: source
           workspace: shared-data
-          subdir: patterns-operator
+          subPath: patterns-operator
 
     - name: apply-catalog
       runAfter:
@@ -381,14 +391,19 @@ spec:
         workspace: shared-data
         subPath: kubeconfig
       taskSpec:
+        metadata: {}
+        spec: null
         params:
           - name: upload-registry
+            type: string
           - name: cluster-name
+            type: string
         results:
         workspaces:
           - name: kubeconfig
         steps:
           - name: apply-catalog
+            computeResources: {}
             image: {{ $.Values.qeCIPipelines.defaults.utilityContainerImg }}
             env:
               - name: KUBECONFIG
@@ -419,6 +434,8 @@ spec:
           value:  {{ $.Values.qeCIPipelines.patternsOperator.baseUploadRegistry }}
         - name: cluster-name
           value: $(tasks.provision-hosted-cluster.results.cluster-name)
+        - name: target-version
+          value: 9.9.9-$(tasks.get-uniq-postfix.results.postfix)
       workspaces:
       - name: kubeconfig
         workspace: shared-data
@@ -426,16 +443,27 @@ spec:
       - name: test-results
         workspace: shared-data
         subPath: test-results
+      - name: install-results
+        workspace: shared-data
+        subPath: install-results
       taskSpec:
+        metadata: {}
+        spec: null
         params:
           - name: upload-registry
+            type: string
           - name: cluster-name
+            type: string
+          - name: target-version
+            type: string
         results:
         workspaces:
           - name: kubeconfig
           - name: test-results
+          - name: install-results
         steps:
           - name: apply-catalog
+            computeResources: {}
             image: {{ $.Values.qeCIPipelines.defaults.utilityContainerImg }}
             env:
               - name: KUBECONFIG
@@ -453,7 +481,13 @@ spec:
                 exit 1
               fi
 
+              trap 'echo -n failed > $(workspaces.install-results.path)/status' ERR
+
               oc patch -n patterns-operator subscription.operators.coreos.com/patterns-operator --type=json -p '[{"op": "replace", "path": "/spec/source", "value": "test-pattern-operator"}]'
+              oc wait csv patterns-operator.v$(params.target-version) \
+                -n patterns-operator \
+                --for=jsonpath='{.status.phase}'=Succeeded \
+                --timeout={{ $.Values.qeCIPipelines.patternsOperator.upgradeTimeout }}
 
     - name: post-upgrade-interop-test
       onError: continue

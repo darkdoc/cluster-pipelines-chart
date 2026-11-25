@@ -1,0 +1,98 @@
+apiVersion: tekton.dev/v1beta1
+kind: StepAction
+metadata:
+  name: generate-cluster-name
+  namespace: {{ .Values.qeCIPipelines.defaults.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+spec:
+  description: Generate a name for the openshift-cluster
+  params:
+    - name: cluster-name-postfix
+      type: string
+      default: ""
+    - name: ocp-version
+      type: string
+      default: ""
+    - name: platform
+      type: string
+      default: ""
+    - name: flavor
+      type: string
+      default: ""
+    - name: cluster-role
+      type: string
+      default: ""
+    - name: cluster-base-name
+      type: string
+      default: ""
+    - name: pipelinerun-name
+      type: string
+      default: ""
+      description: PipelineRun metadata.name for default postfix derivation
+    - name: pipeline-name
+      type: string
+      default: ""
+      description: Pipeline metadata.name; used with pipelinerun-name for default postfix
+    - name: pipelinerun-uid
+      type: string
+      default: ""
+      description: PipelineRun UID; fallback default postfix when run name suffix cannot be derived
+  results:
+    - name: cluster-name
+      description: The generated name of the cluster
+  image: {{ .Values.toolsImage }}
+  env:
+    - name: VERSION_STRING
+      value: $(params.ocp-version)
+    - name: OVERRIDE_POSTFIX
+      value: $(params.cluster-name-postfix)
+    - name: PIPELINE_NAME
+      value: $(params.pipeline-name)
+    - name: RUN_NAME
+      value: $(params.pipelinerun-name)
+    - name: PIPELINERUN_UID
+      value: $(params.pipelinerun-uid)
+    - name: PLATFORM
+      value: $(params.platform)
+    - name: CLUSTER_BASENAME
+      value: $(params.cluster-base-name)
+    - name: CLUSTER_ROLE
+      value: $(params.cluster-role)
+    - name: FLAVOR
+      value: $(params.flavor)
+  script: |
+      #!/usr/bin/env bash
+
+      set -Eeuo pipefail
+        set -euo pipefail
+
+        VERSION_STRING="${VERSION_STRING//./-}"
+
+        if [ -n "${OVERRIDE_POSTFIX}" ]; then
+          if ! [[ "${OVERRIDE_POSTFIX}" =~ ^[a-z0-9]{4,8}$ ]]; then
+            echo "cluster-name-postfix must be 4-8 lowercase alphanumeric characters when set" >&2
+            exit 1
+          fi
+          POSTFIX="${OVERRIDE_POSTFIX}"
+        else
+          PREFIX="${PIPELINE_NAME}-"
+          if [[ -n "${RUN_NAME}" && -n "${PIPELINE_NAME}" && "${RUN_NAME}" == "${PREFIX}"* ]]; then
+            POSTFIX="${RUN_NAME#${PREFIX}}"
+          else
+            POSTFIX=""
+          fi
+          if [[ -z "${POSTFIX}" || ! "${POSTFIX}" =~ ^[a-z0-9]{4,8}$ ]]; then
+            if [ -z "${PIPELINERUN_UID}" ]; then
+              echo "could not derive cluster name postfix from PipelineRun name; pipelinerun-uid is required for fallback" >&2
+              exit 1
+            fi
+            HEX_UID="${PIPELINERUN_UID//-/}"
+            HEX_UID="${HEX_UID,,}"
+            POSTFIX="${HEX_UID:0:5}"
+            echo "Using UID fragment for cluster name postfix (PipelineRun name did not match ${PREFIX}<suffix>)" >&2
+          fi
+        fi
+
+        CLUSTER_NAME="${CLUSTER_BASENAME}-${PLATFORM}-${VERSION_STRING}-${CLUSTER_ROLE}-${FLAVOR}-${POSTFIX}"
+        echo -n "${CLUSTER_NAME}" > "$(results.cluster-name.path)"

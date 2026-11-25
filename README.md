@@ -1,6 +1,6 @@
 # cluster-pipelines
 
-![Version: 0.0.17](https://img.shields.io/badge/Version-0.0.17-informational?style=flat-square)
+![Version: 0.0.18](https://img.shields.io/badge/Version-0.0.18-informational?style=flat-square)
 
 A Helm chart that deploys cluster provisioning pipelines
 
@@ -117,6 +117,7 @@ This chart is used to serve as the template for Validated Patterns Charts
 | qeCIPipelines.patternsOperator.operatorRepoRevision | string | `"main"` |  |
 | qeCIPipelines.patternsOperator.patternRepo | string | `"https://github.com/validatedpatterns/multicloud-gitops.git"` |  |
 | qeCIPipelines.patternsOperator.patternRepoRevision | string | `"main"` |  |
+| qeCIPipelines.patternsOperator.upgradeTimeout | string | `"10m"` |  |
 | qeCIPipelines.scheduleDefaults.concurrencyPolicy | string | `"Forbid"` |  |
 | qeCIPipelines.scheduleDefaults.failedJobsHistoryLimit | int | `3` |  |
 | qeCIPipelines.scheduleDefaults.finallyTimeout | string | `"30m"` |  |
