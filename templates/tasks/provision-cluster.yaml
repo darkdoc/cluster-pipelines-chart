@@ -102,8 +102,6 @@ spec:
     - name: kubeconfig
     - name: install-config
       description: Holds generated install-config.yaml and clusterdeployment.yaml
-    - name: provision-results
-
   stepTemplate:
     imagePullPolicy: IfNotPresent
   steps:
